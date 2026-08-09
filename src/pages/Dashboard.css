@@ -1,0 +1,104 @@
+/* Main Dashboard Page Layout */
+.dashboard-page {
+  background-color: #f8fafc;
+  min-height: 85vh;
+  padding: 40px 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.dashboard-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Welcome Dark Banner */
+.welcome-banner {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 35px;
+  margin-bottom: 35px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.welcome-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  color: #fbbf24;
+}
+
+.welcome-subtitle {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 1.05rem;
+}
+
+.btn-book-ride {
+  background-color: #fbbf24;
+  color: #0f172a;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-book-ride:hover {
+  background-color: #f59e0b;
+  transform: translateY(-2px);
+}
+
+/* Modern Analytics Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+}
+
+/* Individual Stat Card */
+.stat-card {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+  color: #0f172a;
+}
+
+.stat-value.gold {
+  color: #d97706;
+}
+
+.stat-label {
+  margin: 0;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+}

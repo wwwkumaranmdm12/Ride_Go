@@ -1,0 +1,94 @@
+/* Clean Dark Navbar Container */
+.navbar {
+  background-color: #0d131f;
+  border-bottom: 1px solid #1e293b;
+  
+  /* FIXED: 100% width maintain panna margin & padding update */
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem 1.5rem; /* 3rem-a 1.5rem-a kurachurukom */
+  box-sizing: border-box; 
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Brand Logo */
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+
+.nav-logo span {
+  color: #f59e0b;
+}
+
+/* Center Nav Links */
+.nav-links {
+  display: flex;
+  gap: 1.5rem; /* 2rem-a 1.5rem-a reduced to prevent overflow */
+  align-items: center;
+}
+
+.nav-link {
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  white-space: nowrap; /* Text break aagama irukka */
+}
+
+.nav-link:hover {
+  color: #ffffff;
+}
+
+/* Selected Active Link */
+.nav-link.active {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+/* Right Auth Buttons */
+.nav-auth {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-login {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.5rem 1.2rem;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-login:hover {
+  color: #f59e0b;
+}
+
+.btn-signup {
+  background-color: #f59e0b;
+  color: #0d131f;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.55rem 1.4rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-signup:hover {
+  background-color: #d97706;
+}
