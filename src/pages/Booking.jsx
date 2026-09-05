@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Custom Car Icon for Live Tracking
+// Custom Moving Car Icon
 const carIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/3202/3202003.png",
   iconSize: [35, 35],
@@ -85,14 +85,15 @@ function Booking() {
   const [activeMapField, setActiveMapField] = useState(null);
   const [tempCoords, setTempCoords] = useState(null);
 
-  const [distanceKm, setDistanceKm] = useState(10);
+  // Initial distance set to 0 (Fixes initial fare glitch)
+  const [distanceKm, setDistanceKm] = useState(0); 
   const [isBooked, setIsBooked] = useState(false);
   const [driverPos, setDriverPos] = useState(null);
   const [rideStatus, setRideStatus] = useState("Driver assigned and on the way!");
 
   const defaultCenter = [11.0168, 76.9558];
 
-  // Debounce API Calls - Lag/Slowness Avoid Panna
+  // Debounce API calls to prevent site slowness/lag
   useEffect(() => {
     const timer = setTimeout(() => {
       if (booking.pickupLocation.trim().length >= 3 && !pickupCoords) {
@@ -137,9 +138,9 @@ function Booking() {
     }
   };
 
-  // Distance Calculator - Precise Haversine
+  // Accurate Distance Calculator
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    if (!lat1 || !lon1 || !lat2 || !lon2) return 10;
+    if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -151,7 +152,7 @@ function Booking() {
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const dist = R * c;
-    return dist > 0 ? parseFloat(dist.toFixed(1)) : 10;
+    return dist > 0 ? parseFloat(dist.toFixed(1)) : 0;
   };
 
   useEffect(() => {
@@ -163,6 +164,8 @@ function Booking() {
         dropCoords.lng
       );
       setDistanceKm(dist);
+    } else {
+      setDistanceKm(0);
     }
   }, [pickupCoords, dropCoords]);
 
@@ -254,6 +257,7 @@ function Booking() {
             <h1>Book Your Ride</h1>
 
             <form className="booking-form" onSubmit={handleBooking}>
+              {/* Pickup Input */}
               <div style={{ position: "relative" }}>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input
@@ -286,6 +290,7 @@ function Booking() {
                 )}
               </div>
 
+              {/* Drop Input */}
               <div style={{ position: "relative" }}>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input
@@ -318,6 +323,7 @@ function Booking() {
                 )}
               </div>
 
+              {/* Date Input */}
               <input
                 type="date"
                 name="rideDate"
@@ -326,38 +332,44 @@ function Booking() {
                 required
               />
 
-              <div className="cab-selection-wrapper">
-                <h3>Select Cab Type</h3>
-                <p style={{ fontSize: "13px", color: "#64748b" }}>Distance: ~{distanceKm} km</p>
-                <div className="cab-cards-grid">
-                  {CAB_TYPES.map((cab) => {
-                    const estimatedFare = Math.round(distanceKm * cab.perKm);
-                    const isSelected = booking.cabType === cab.name;
+              {/* Display Cab Cards & Fare ONLY IF locations are selected */}
+              {pickupCoords && dropCoords && (
+                <div className="cab-selection-wrapper">
+                  <h3>Select Cab Type</h3>
+                  <p style={{ fontSize: "13px", color: "#64748b" }}>
+                    Calculated Distance: ~{distanceKm} km
+                  </p>
+                  <div className="cab-cards-grid">
+                    {CAB_TYPES.map((cab) => {
+                      const estimatedFare = Math.round(distanceKm * cab.perKm);
+                      const isSelected = booking.cabType === cab.name;
 
-                    return (
-                      <div
-                        key={cab.id}
-                        className={`cab-card ${isSelected ? "selected" : ""}`}
-                        onClick={() => setBooking({ ...booking, cabType: cab.name })}
-                      >
-                        <img src={cab.image} alt={cab.name} />
-                        <div className="cab-card-info">
-                          <h4>{cab.name}</h4>
-                          <p>👥 {cab.capacity} | ⭐ {cab.rating}</p>
-                          <p className="fare">Est: ₹{estimatedFare}</p>
+                      return (
+                        <div
+                          key={cab.id}
+                          className={`cab-card ${isSelected ? "selected" : ""}`}
+                          onClick={() => setBooking({ ...booking, cabType: cab.name })}
+                        >
+                          <img src={cab.image} alt={cab.name} />
+                          <div className="cab-card-info">
+                            <h4>{cab.name}</h4>
+                            <p>👥 {cab.capacity} | ⭐ {cab.rating}</p>
+                            <p className="fare">Est: ₹{estimatedFare}</p>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <button type="submit" disabled={!booking.cabType}>
+              <button type="submit" disabled={!booking.cabType || !pickupCoords || !dropCoords}>
                 Book Now 🚖
               </button>
             </form>
           </>
         ) : (
+          /* Live Tracking Map View */
           <div className="tracking-view">
             <h2>🚗 Live Uber Tracking</h2>
             <p className="status-badge">{rideStatus}</p>
@@ -412,6 +424,7 @@ function Booking() {
           </div>
         )}
 
+        {/* Map Location Selector Modal */}
         {activeMapField && (
           <div className="modal-overlay">
             <div className="modal-box">
