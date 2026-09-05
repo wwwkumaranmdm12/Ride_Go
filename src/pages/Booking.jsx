@@ -77,48 +77,56 @@ function Booking() {
     status: "Confirmed",
   });
 
-  // Coordinates and Suggestions
   const [pickupCoords, setPickupCoords] = useState(null);
   const [dropCoords, setDropCoords] = useState(null);
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [dropSuggestions, setDropSuggestions] = useState([]);
 
-  // Map Picker Modal
   const [activeMapField, setActiveMapField] = useState(null);
   const [tempCoords, setTempCoords] = useState(null);
 
-  // Tracking and Distance
-  const [distanceKm, setDistanceKm] = useState(0);
+  const [distanceKm, setDistanceKm] = useState(10);
   const [isBooked, setIsBooked] = useState(false);
   const [driverPos, setDriverPos] = useState(null);
   const [rideStatus, setRideStatus] = useState("Driver assigned and on the way!");
 
   const defaultCenter = [11.0168, 76.9558];
 
-  const handleLocationSearch = async (query, type) => {
-    setBooking((prev) => ({ ...prev, [type]: query }));
+  // Debounce API Calls - Lag/Slowness Avoid Panna
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (booking.pickupLocation.trim().length >= 3 && !pickupCoords) {
+        fetchSuggestions(booking.pickupLocation, "pickup");
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [booking.pickupLocation, pickupCoords]);
 
-    if (query.trim().length < 3) {
-      if (type === "pickupLocation") setPickupSuggestions([]);
-      else setDropSuggestions([]);
-      return;
-    }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (booking.dropLocation.trim().length >= 3 && !dropCoords) {
+        fetchSuggestions(booking.dropLocation, "drop");
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [booking.dropLocation, dropCoords]);
 
+  const fetchSuggestions = async (query, type) => {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
       );
       const data = await res.json();
-      if (type === "pickupLocation") setPickupSuggestions(data);
+      if (type === "pickup") setPickupSuggestions(data);
       else setDropSuggestions(data);
     } catch (err) {
-      console.error("Search error:", err);
+      console.error("Search API Error:", err);
     }
   };
 
   const selectSuggestion = (item, type) => {
     const coords = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
-    if (type === "pickupLocation") {
+    if (type === "pickup") {
       setBooking((prev) => ({ ...prev, pickupLocation: item.display_name }));
       setPickupCoords(coords);
       setPickupSuggestions([]);
@@ -129,7 +137,9 @@ function Booking() {
     }
   };
 
+  // Distance Calculator - Precise Haversine
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return 10;
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -140,18 +150,19 @@ function Booking() {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return parseFloat((R * c).toFixed(2));
+    const dist = R * c;
+    return dist > 0 ? parseFloat(dist.toFixed(1)) : 10;
   };
 
   useEffect(() => {
-    if (pickupCoords && dropCoords) {
+    if (pickupCoords?.lat && dropCoords?.lat) {
       const dist = calculateDistance(
         pickupCoords.lat,
         pickupCoords.lng,
         dropCoords.lat,
         dropCoords.lng
       );
-      setDistanceKm(dist > 0 ? dist : 5);
+      setDistanceKm(dist);
     }
   }, [pickupCoords, dropCoords]);
 
@@ -243,7 +254,6 @@ function Booking() {
             <h1>Book Your Ride</h1>
 
             <form className="booking-form" onSubmit={handleBooking}>
-              {/* Pickup Input */}
               <div style={{ position: "relative" }}>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input
@@ -251,7 +261,10 @@ function Booking() {
                     name="pickupLocation"
                     placeholder="Pickup Location"
                     value={booking.pickupLocation}
-                    onChange={(e) => handleLocationSearch(e.target.value, "pickupLocation")}
+                    onChange={(e) => {
+                      setBooking({ ...booking, pickupLocation: e.target.value });
+                      setPickupCoords(null);
+                    }}
                     required
                   />
                   <button
@@ -265,7 +278,7 @@ function Booking() {
                 {pickupSuggestions.length > 0 && (
                   <ul className="suggestions-list">
                     {pickupSuggestions.map((item, idx) => (
-                      <li key={idx} onClick={() => selectSuggestion(item, "pickupLocation")}>
+                      <li key={idx} onClick={() => selectSuggestion(item, "pickup")}>
                         📍 {item.display_name}
                       </li>
                     ))}
@@ -273,7 +286,6 @@ function Booking() {
                 )}
               </div>
 
-              {/* Drop Input */}
               <div style={{ position: "relative" }}>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input
@@ -281,7 +293,10 @@ function Booking() {
                     name="dropLocation"
                     placeholder="Drop Location"
                     value={booking.dropLocation}
-                    onChange={(e) => handleLocationSearch(e.target.value, "dropLocation")}
+                    onChange={(e) => {
+                      setBooking({ ...booking, dropLocation: e.target.value });
+                      setDropCoords(null);
+                    }}
                     required
                   />
                   <button
@@ -295,7 +310,7 @@ function Booking() {
                 {dropSuggestions.length > 0 && (
                   <ul className="suggestions-list">
                     {dropSuggestions.map((item, idx) => (
-                      <li key={idx} onClick={() => selectSuggestion(item, "dropLocation")}>
+                      <li key={idx} onClick={() => selectSuggestion(item, "drop")}>
                         📍 {item.display_name}
                       </li>
                     ))}
@@ -303,7 +318,6 @@ function Booking() {
                 )}
               </div>
 
-              {/* Date Input */}
               <input
                 type="date"
                 name="rideDate"
@@ -312,12 +326,12 @@ function Booking() {
                 required
               />
 
-              {/* Dynamic Cab Cards Selection */}
               <div className="cab-selection-wrapper">
                 <h3>Select Cab Type</h3>
+                <p style={{ fontSize: "13px", color: "#64748b" }}>Distance: ~{distanceKm} km</p>
                 <div className="cab-cards-grid">
                   {CAB_TYPES.map((cab) => {
-                    const estimatedFare = Math.round((distanceKm || 10) * cab.perKm);
+                    const estimatedFare = Math.round(distanceKm * cab.perKm);
                     const isSelected = booking.cabType === cab.name;
 
                     return (
@@ -329,7 +343,7 @@ function Booking() {
                         <img src={cab.image} alt={cab.name} />
                         <div className="cab-card-info">
                           <h4>{cab.name}</h4>
-                          <p>👥 {cab.capacity} Seats | ⭐ {cab.rating}</p>
+                          <p>👥 {cab.capacity} | ⭐ {cab.rating}</p>
                           <p className="fare">Est: ₹{estimatedFare}</p>
                         </div>
                       </div>
@@ -344,7 +358,6 @@ function Booking() {
             </form>
           </>
         ) : (
-          /* Live Uber-Style Tracking View */
           <div className="tracking-view">
             <h2>🚗 Live Uber Tracking</h2>
             <p className="status-badge">{rideStatus}</p>
@@ -399,7 +412,6 @@ function Booking() {
           </div>
         )}
 
-        {/* Map Picker Modal */}
         {activeMapField && (
           <div className="modal-overlay">
             <div className="modal-box">
